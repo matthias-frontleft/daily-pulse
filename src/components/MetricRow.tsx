@@ -1,33 +1,34 @@
 import type { PeriodTotals } from '../types'
 import { fmtInt, fmtMoney, fmtPct } from '../lib/format'
-import { Arrow, Card, Delta } from './ui'
+import { Card, Delta } from './ui'
 
 /** The spine as four headline tiles: Sessions · Conversion · AOV · Orders. */
-export function MetricRow({ cur, base }: { cur: PeriodTotals; base: PeriodTotals }) {
+export function MetricRow({ cur, base }: { cur: PeriodTotals; base: PeriodTotals | null }) {
   const pc = (a: number, b: number) => (b ? (a - b) / b : null)
   const tiles = [
-    { label: 'Sessions', value: fmtInt(cur.sessions), change: pc(cur.sessions, base.sessions) },
+    { label: 'Sessions', value: fmtInt(cur.sessions), change: base ? pc(cur.sessions, base.sessions) : null },
     {
       label: 'Conversion rate',
       value: fmtPct(cur.conversionRate, 2),
-      change: pc(cur.conversionRate, base.conversionRate),
+      change: base ? pc(cur.conversionRate, base.conversionRate) : null,
     },
-    { label: 'AOV', value: fmtMoney(cur.aov, 2), change: pc(cur.aov, base.aov) },
-    { label: 'Orders', value: fmtInt(cur.orders), change: pc(cur.orders, base.orders) },
+    { label: 'AOV', value: fmtMoney(cur.aov, 2), change: base ? pc(cur.aov, base.aov) : null },
+    { label: 'Orders', value: fmtInt(cur.orders), change: base ? pc(cur.orders, base.orders) : null },
   ]
   return (
-    <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+    <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
       {tiles.map((t) => (
-        <Card key={t.label} className="p-4">
-          <div className="text-[11px] font-medium uppercase tracking-wide text-ink-faint">
+        <Card key={t.label} className="p-5">
+          <div className="text-[12px] font-semibold uppercase tracking-wide text-ink-faint">
             {t.label}
           </div>
-          <div className="mt-2 tnum text-[26px] font-bold leading-none text-ink">{t.value}</div>
-          <div className="mt-2 flex items-center gap-1 text-[12.5px] font-medium">
-            <Arrow change={t.change} />
-            <Delta change={t.change} />
-            <span className="text-ink-faint">vs baseline</span>
-          </div>
+          <div className="mt-2.5 tnum text-[30px] font-bold leading-none text-ink">{t.value}</div>
+          {base && (
+            <div className="mt-3 flex items-center gap-1.5">
+              <Delta change={t.change} chip />
+              <span className="text-[12px] text-ink-faint">vs baseline</span>
+            </div>
+          )}
         </Card>
       ))}
     </div>

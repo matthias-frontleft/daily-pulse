@@ -21,7 +21,7 @@ export function Pill({
   return (
     <span
       title={title}
-      className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-medium leading-none ${tones[tone]}`}
+      className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11.5px] font-semibold leading-none ${tones[tone]}`}
     >
       {children}
     </span>
@@ -29,38 +29,51 @@ export function Pill({
 }
 
 /**
- * Coloured % delta. `polarity` decides which direction is "good".
- * For ecommerce metrics, up is good (green); flat is muted.
+ * Coloured % delta with a direction arrow built in. `polarity` decides which
+ * direction is "good". For ecommerce metrics up is good (green); flat is muted.
+ * Rendered as a subtle chip so deltas read as a distinct layer from the values.
  */
 export function Delta({
   change,
   polarity = 'good',
-  className = '',
+  chip = false,
 }: {
   change: number | null
   polarity?: 'good' | 'bad' | 'neutral'
-  className?: string
+  chip?: boolean
 }) {
-  if (change === null) return <span className="text-ink-faint">—</span>
+  if (change === null)
+    return <span className="text-[13px] font-medium text-ink-faint">—</span>
   const flat = Math.abs(change) < 0.005
   let cls = 'text-ink-faint'
+  let chipCls = 'bg-stone-100 text-ink-faint'
   if (!flat && polarity !== 'neutral') {
     const improves = polarity === 'good' ? change > 0 : change < 0
     cls = improves ? 'text-positive' : 'text-loss'
+    chipCls = improves ? 'bg-emerald-50 text-positive' : 'bg-red-50 text-loss'
   }
-  return <span className={`tnum ${cls} ${className}`}>{fmtPctChange(change)}</span>
-}
-
-/** Tiny triangle marker echoing delta direction. */
-export function Arrow({ change }: { change: number | null }) {
-  if (change === null || Math.abs(change) < 0.005) return null
-  const up = change > 0
-  return <span className={`text-[9px] ${up ? 'text-positive' : 'text-loss'}`}>{up ? '▲' : '▼'}</span>
+  const arrow = flat ? '' : change > 0 ? '▲ ' : '▼ '
+  if (chip) {
+    return (
+      <span
+        className={`tnum inline-flex items-center rounded-md px-1.5 py-0.5 text-[12.5px] font-semibold ${chipCls}`}
+      >
+        {arrow}
+        {fmtPctChange(change)}
+      </span>
+    )
+  }
+  return (
+    <span className={`tnum text-[13px] font-semibold ${cls}`}>
+      {arrow}
+      {fmtPctChange(change)}
+    </span>
+  )
 }
 
 export function SectionLabel({ children }: { children: ReactNode }) {
   return (
-    <span className="text-[10.5px] font-semibold uppercase tracking-[0.13em] text-ink-faint">
+    <span className="text-[12px] font-semibold uppercase tracking-[0.1em] text-ink-faint">
       {children}
     </span>
   )
@@ -77,5 +90,47 @@ export function Card({
     <div className={`rounded-2xl border border-hairline bg-white shadow-card ${className}`}>
       {children}
     </div>
+  )
+}
+
+// ── Segmented control ────────────────────────────────────────────────────────
+// High-contrast: the active option is a solid dark pill, inactive options are
+// clearly clickable on hover. Used for both the header tabs and period controls.
+
+export function SegGroup({ children }: { children: ReactNode }) {
+  return (
+    <div className="inline-flex flex-wrap items-center gap-1 rounded-xl border border-hairline bg-stone-100 p-1">
+      {children}
+    </div>
+  )
+}
+
+export function Seg({
+  active,
+  onClick,
+  children,
+  title,
+  size = 'md',
+}: {
+  active: boolean
+  onClick: () => void
+  children: ReactNode
+  title?: string
+  size?: 'md' | 'sm'
+}) {
+  const pad = size === 'sm' ? 'px-2.5 py-1.5 text-[13px]' : 'px-3.5 py-2 text-[13.5px]'
+  return (
+    <button
+      onClick={onClick}
+      title={title}
+      aria-pressed={active}
+      className={`rounded-lg font-semibold transition ${pad} ${
+        active
+          ? 'bg-ink text-white shadow-sm'
+          : 'text-ink-soft hover:bg-white hover:text-ink'
+      }`}
+    >
+      {children}
+    </button>
   )
 }

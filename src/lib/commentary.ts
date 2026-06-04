@@ -11,7 +11,7 @@
 // ───────────────────────────────────────────────────────────────────────────
 
 import type { PeriodTotals, SpineDecomposition } from '../types'
-import { fmtMoney, fmtPct, fmtPctChange, magnitudeWord } from './format'
+import { fmtInt, fmtMoney, fmtPct, fmtPctChange, magnitudeWord } from './format'
 import { topMovers, topReferrerShift } from './periods'
 
 export const AI_DISCLAIMER =
@@ -45,12 +45,41 @@ const LEVER_READ = {
 
 export function buildAnalysis(
   current: PeriodTotals,
-  base: PeriodTotals,
-  spine: SpineDecomposition,
+  base: PeriodTotals | null,
+  spine: SpineDecomposition | null,
   baseLabel: string,
 ): Analysis {
   const read: string[] = []
   const suggestions: string[] = []
+
+  // No comparison selected → a calm snapshot read, no deltas.
+  if (!base || !spine) {
+    read.push(
+      `Net revenue stands at ${fmtMoney(current.netRevenue)} from ${fmtInt(
+        current.sessions,
+      )} sessions, converting at ${fmtPct(current.conversionRate, 2)} into ${fmtInt(
+        current.orders,
+      )} orders at a ${fmtMoney(current.aov)} average basket.`,
+    )
+    read.push(
+      current.missingCogsProductCount > 0
+        ? `Gross profit reads ${fmtMoney(current.grossProfit)} (${fmtPct(
+            current.grossMargin,
+          )} margin), but treat it as partial — ${current.missingCogsProductCount} product${
+            current.missingCogsProductCount > 1 ? 's are' : ' is'
+          } missing a unit cost, so margin is flattered.`
+        : `Gross profit is ${fmtMoney(current.grossProfit)} at a ${fmtPct(current.grossMargin)} margin.`,
+    )
+    read.push('Select a comparison to see which lever — traffic, conversion or basket — is moving the numbers.')
+    if (current.missingCogsProductCount > 0)
+      suggestions.push(
+        `Add unit costs for the ${current.missingCogsProductCount} flagged product${
+          current.missingCogsProductCount > 1 ? 's' : ''
+        } in Shopify so gross profit and margin are accurate.`,
+      )
+    suggestions.push('Compare against the same-weekday baseline to judge today like-for-like.')
+    return { read, suggestions: suggestions.slice(0, 3) }
+  }
 
   const lever = LEVER_READ[spine.dominant]
   const revWord = spine.revenueChange === null ? '' : magnitudeWord(spine.revenueChange)
