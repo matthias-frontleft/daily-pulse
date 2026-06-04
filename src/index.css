@@ -1,0 +1,39 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: #faf8f3;
+  color: #1a1820;
+  font-family: 'DM Sans', ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Tabular figures for all numbers */
+.tnum {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+}
+
+/* Frontleft "MetaTieDye" brand gradient */
+.metatiedye {
+  background-image: linear-gradient(100deg, #8b5cf6, #22c55e, #facc15, #ec4899, #22d3ee);
+}
+.metatiedye-text {
+  background-image: linear-gradient(100deg, #8b5cf6, #22c55e, #facc15, #ec4899, #22d3ee);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
